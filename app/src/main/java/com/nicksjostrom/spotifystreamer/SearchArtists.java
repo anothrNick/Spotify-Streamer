@@ -1,6 +1,7 @@
 package com.nicksjostrom.spotifystreamer;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,6 +27,9 @@ import retrofit.client.Response;
 
 
 public class SearchArtists extends Activity {
+
+    public static final String SELECTED_ARTIST_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_NAME";
+    public static final String SELECTED_ARTIST_ID = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_ID";
 
     ArtistAdapter adapter;
     List<Artist> artistList = new ArrayList<Artist>();
@@ -58,6 +62,17 @@ public class SearchArtists extends Activity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // get artist from listview
                 Artist artist = (Artist) artistListView.getItemAtPosition(position);
+
+                Log.d("id: ", ""+artist.id);
+                Log.d("name: ", ""+artist.name);
+
+                // create new intent to TopTenTracks activity for this artist
+                Intent intent = new Intent(SearchArtists.this, TopTenTracks.class);
+                // place extra data so we know what artist to display
+                intent.putExtra(SELECTED_ARTIST_NAME, artist.name);
+                intent.putExtra(SELECTED_ARTIST_ID, artist.id);
+                // start activity
+                startActivity(intent);
             }
         });
 
