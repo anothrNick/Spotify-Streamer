@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -26,8 +25,8 @@ import retrofit.client.Response;
 
 public class SearchArtists extends Activity {
 
-    ArrayAdapter<String> adapter;
-    ArrayList<String> artistList = new ArrayList<String>();
+    ArtistAdapter adapter;
+    List<Artist> artistList = new ArrayList<Artist>();
     ListView artistListView;
     EditText searchText;
 
@@ -39,9 +38,7 @@ public class SearchArtists extends Activity {
         artistListView = (ListView) findViewById(R.id.artistList);
         searchText = (EditText) findViewById(R.id.search);
 
-        adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1,
-                artistList);
+        adapter = new ArtistAdapter(this, artistList);
         artistListView.setAdapter(adapter);
 
         searchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -50,7 +47,7 @@ public class SearchArtists extends Activity {
                 if(actionId == EditorInfo.IME_ACTION_DONE) {
 
                     artistList.clear();
-                    artistList.add("Loading...");
+                    //artistList.add("Loading...");
                     adapter.notifyDataSetChanged();
                     updateArtistList(searchText.getText().toString());
 
@@ -77,9 +74,7 @@ public class SearchArtists extends Activity {
             public void success(ArtistsPager artistsPager, Response response) {
                 List<Artist> artists = artistsPager.artists.items;
                 artistList.clear();
-                for(Artist artist : artists) {
-                    artistList.add(artist.name);
-                }
+                artistList.addAll(artists);
 
                 Log.d("success. List: ", artistList.toString());
 
