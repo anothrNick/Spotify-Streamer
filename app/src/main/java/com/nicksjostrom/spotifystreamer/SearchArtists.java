@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -30,25 +32,50 @@ public class SearchArtists extends Activity {
     ListView artistListView;
     EditText searchText;
 
+    SpotifyApi api;
+    SpotifyService spotify;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_artists);
 
-        artistListView = (ListView) findViewById(R.id.artistList);
-        searchText = (EditText) findViewById(R.id.search);
+        // init spotify API
+        api = new SpotifyApi();
+        spotify = api.getService();
 
+        // initialize ArtistAdapter with empty list, updating this will update the listview (once notified of changes)
         adapter = new ArtistAdapter(this, artistList);
+        // get listview from activity
+        artistListView = (ListView) findViewById(R.id.artistList);
+        // set listview adapter so we can update the UI
         artistListView.setAdapter(adapter);
 
+        // set onclick listener so we can click on an artist and view their top 10
+        artistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // get artist from listview
+                Artist artist = (Artist) artistListView.getItemAtPosition(position);
+            }
+        });
+
+        // initialize search field
+        searchText = (EditText) findViewById(R.id.search);
+
+        // create event listener for 'Done' button to search
         searchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if(actionId == EditorInfo.IME_ACTION_DONE) {
-
+                    // new search, clear artist list
                     artistList.clear();
-                    //artistList.add("Loading...");
+
+                    // notify list change
                     adapter.notifyDataSetChanged();
+
+                    // call update with search string
                     updateArtistList(searchText.getText().toString());
 
                     return true;
@@ -65,15 +92,21 @@ public class SearchArtists extends Activity {
         return true;
     }
 
+    /**
+     * Search spotify for artists that match search string
+     * @param artist Search string for artists
+     */
     public void updateArtistList(String artist) {
-        SpotifyApi api = new SpotifyApi();
-        SpotifyService spotify = api.getService();
 
         spotify.searchArtists(artist, new Callback<ArtistsPager>() {
             @Override
             public void success(ArtistsPager artistsPager, Response response) {
+                // get list of found artists
                 List<Artist> artists = artistsPager.artists.items;
+
+                // clear adapter's list
                 artistList.clear();
+                // add all artists to adapter list
                 artistList.addAll(artists);
 
                 Log.d("success. List: ", artistList.toString());
@@ -82,8 +115,10 @@ public class SearchArtists extends Activity {
                     @Override
                     public void run() {
                         // This code will always run on the UI thread, therefore is safe to modify UI elements.
+                        // notify change of artists, this will update the listview
                         adapter.notifyDataSetChanged();
-                        if(artistList.size() == 0) {
+                        if (artistList.size() == 0) {
+                            // if artistList contains 0 artists, toast
                             Toast.makeText(SearchArtists.this, "No artists found", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -92,6 +127,7 @@ public class SearchArtists extends Activity {
 
             @Override
             public void failure(RetrofitError error) {
+                // toast on failure
                 artistList.clear();
 
                 Log.d("No artists found...","");
@@ -100,7 +136,7 @@ public class SearchArtists extends Activity {
                     @Override
                     public void run() {
                         // This code will always run on the UI thread, therefore is safe to modify UI elements.
-                        Toast.makeText(SearchArtists.this, "No artists found", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SearchArtists.this, "Error: No artists found", Toast.LENGTH_SHORT).show();
                         adapter.notifyDataSetChanged();
                     }
                 });

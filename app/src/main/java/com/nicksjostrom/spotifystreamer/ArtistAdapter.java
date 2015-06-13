@@ -1,7 +1,6 @@
 package com.nicksjostrom.spotifystreamer;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +32,7 @@ public class ArtistAdapter extends BaseAdapter {
         this.artists = artists;
 
         this.mPicasso = Picasso.with(context);
-        this.mInflater = LayoutInflater.from(context);//(LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        this.mInflater = LayoutInflater.from(context);
     }
 
     @Override
@@ -55,32 +54,40 @@ public class ArtistAdapter extends BaseAdapter {
     public View getView(int position, View view, ViewGroup parent) {
         ViewHolder holder;
 
+        // check if we can re use the view
         if(view == null) {
+            // create new view with artist_item.xml layout
             view = mInflater.inflate(R.layout.artist_item, null);
             holder = new ViewHolder();
+
+            // get views from layout
             holder.imageView = (ImageView) view.findViewById(R.id.artistImage);
             holder.textView = (TextView) view.findViewById(R.id.artistText);
 
+            // set tag so we can re use view later
             view.setTag(holder);
         }
         else {
+            // get existing view
             holder = (ViewHolder) view.getTag();
         }
 
+        // get artist at this position
         Artist artist = artists.get(position);
         String image_url = "";
+
+        // if we have any images, get URL
         if(artist.images.size() > 0) {
             image_url = artist.images.get(0).url;
         }
 
         if(!image_url.isEmpty()) {
+            // use Picasso to load image into artist_item.xml image view
             mPicasso.load(image_url)
                     .into(holder.imageView);
         }
 
-        String test = artist.name + ": " + image_url;
-
-        Log.d("Artist: ", test);
+        // set textView to name of this artist
         holder.textView.setText(artist.name);
 
         return view;
