@@ -19,7 +19,7 @@ import kaaes.spotify.webapi.android.models.Track;
  *
  * Adapter class for Track ListView
  */
-public class TrackAdapter extends BaseAdapter {
+public class TrackAdapter extends BaseAdapter{
     Context context;
     List<Track> tracks;
     Picasso mPicasso;

@@ -78,7 +78,7 @@ public class ArtistAdapter extends BaseAdapter {
 
         // if we have any images, get URL
         if(artist.images.size() > 0) {
-            image_url = artist.images.get(0).url;
+           image_url = artist.images.get(0).url;
         }
 
         if(!image_url.isEmpty()) {

@@ -51,7 +51,7 @@ public class SearchArtists extends Activity {
             adapter.notifyDataSetChanged();
             if (artistList.size() == 0) {
                 // if artistList contains 0 artists, toast
-                Toast.makeText(SearchArtists.this, "No artists found", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SearchArtists.this, "No artists found. Please refine your search.", Toast.LENGTH_SHORT).show();
             }
         }
     };

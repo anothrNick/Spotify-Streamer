@@ -31,6 +31,14 @@ public class TopTenTracks extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_top_ten_tracks);
 
+        //if (savedInstanceState != null) {
+            // get existing TrackAdapter
+           // adapter = (TrackAdapter)savedInstanceState.getSerializable("tracks");
+       // }
+        //else {
+            // initialize TrackAdapter with empty list, updating this will update the listview (once notified of changes)
+        //}
+
         // get intent and extra string parameters
         Intent intent = getIntent();
         String artist_name = intent.getStringExtra(SearchArtists.SELECTED_ARTIST_NAME);
@@ -41,7 +49,7 @@ public class TopTenTracks extends Activity {
         // set title with artist name
         getActionBar().setTitle("Top 10 Tracks - " + artist_name);
 
-        // initialize ArtistAdapter with empty list, updating this will update the listview (once notified of changes)
+        // initialize TrackAdapter with empty list, updating this will update the listview (once notified of changes)
         adapter = new TrackAdapter(this, trackList);
         // get listview from activity
         trackListView = (ListView) findViewById(R.id.trackList);
