@@ -2,6 +2,7 @@ package com.nicksjostrom.spotifystreamer;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,6 +40,21 @@ public class SearchArtists extends Activity {
     SpotifyApi api;
     SpotifyService spotify;
 
+    /*
+    Runnable object to call on UI thread when Spotify API callbacks are made
+     */
+    final Runnable postExecute = new Runnable() {
+        @Override
+        public void run() {
+            // This code will always run on the UI thread, therefore is safe to modify UI elements.
+            // notify change of artists, this will update the listview
+            adapter.notifyDataSetChanged();
+            if (artistList.size() == 0) {
+                // if artistList contains 0 artists, toast
+                Toast.makeText(SearchArtists.this, "No artists found", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,8 +106,8 @@ public class SearchArtists extends Activity {
                     // notify list change
                     adapter.notifyDataSetChanged();
 
-                    // call update with search string
-                    updateArtistList(searchText.getText().toString());
+                    // GetArtists with search string
+                    new GetArtists().execute(searchText.getText().toString());
 
                     return true;
                 }
@@ -107,55 +123,40 @@ public class SearchArtists extends Activity {
         return true;
     }
 
-    /**
-     * Search spotify for artists that match search string
-     * @param artist Search string for artists
+    /*
+    AsyncTask to make API call. Keep process off of UI thread
      */
-    public void updateArtistList(String artist) {
+    private class GetArtists extends AsyncTask<String, Void, Void> {
+        protected Void doInBackground(String... params) {
+            String artist = params[0];
 
-        spotify.searchArtists(artist, new Callback<ArtistsPager>() {
-            @Override
-            public void success(ArtistsPager artistsPager, Response response) {
-                // get list of found artists
-                List<Artist> artists = artistsPager.artists.items;
+            spotify.searchArtists(artist, new Callback<ArtistsPager>() {
+                @Override
+                public void success(ArtistsPager artistsPager, Response response) {
+                    // get list of found artists
+                    List<Artist> artists = artistsPager.artists.items;
+                    // clear adapter's list
+                    artistList.clear();
+                    // add all artists to adapter list
+                    artistList.addAll(artists);
 
-                // clear adapter's list
-                artistList.clear();
-                // add all artists to adapter list
-                artistList.addAll(artists);
+                    Log.d("success. List: ", artistList.toString());
 
-                Log.d("success. List: ", artistList.toString());
+                    runOnUiThread(postExecute);
+                }
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        // This code will always run on the UI thread, therefore is safe to modify UI elements.
-                        // notify change of artists, this will update the listview
-                        adapter.notifyDataSetChanged();
-                        if (artistList.size() == 0) {
-                            // if artistList contains 0 artists, toast
-                            Toast.makeText(SearchArtists.this, "No artists found", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
+                @Override
+                public void failure(RetrofitError error) {
+                    // toast on failure
+                    artistList.clear();
 
-            @Override
-            public void failure(RetrofitError error) {
-                // toast on failure
-                artistList.clear();
+                    Log.d("No artists found...","");
 
-                Log.d("No artists found...","");
+                    runOnUiThread(postExecute);
+                }
+            });
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        // This code will always run on the UI thread, therefore is safe to modify UI elements.
-                        Toast.makeText(SearchArtists.this, "Error: No artists found", Toast.LENGTH_SHORT).show();
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
-        });
+            return null;
+        }
     }
 }
