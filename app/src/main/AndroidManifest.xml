@@ -10,9 +10,8 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.nicksjostrom.spotifystreamer.SearchArtists"
-            android:label="@string/app_name"
-            android:configChanges="orientation|screenSize" >
+            android:name=".SearchArtistsActivity"
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,10 +19,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.nicksjostrom.spotifystreamer.TopTenTracks"
+            android:name=".TopTenTracksActivity"
             android:label="@string/title_activity_top_ten_tracks"
-            android:configChanges="orientation|screenSize"
-            android:parentActivityName="com.nicksjostrom.spotifystreamer.SearchArtists" >
+            android:parentActivityName=".SearchArtistsActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.nicksjostrom.spotifystreamer.SearchArtists" />

@@ -1,6 +1,8 @@
 package com.nicksjostrom.spotifystreamer;
 
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +23,7 @@ import kaaes.spotify.webapi.android.models.Artist;
  *
  *
  */
-public class ArtistAdapter extends BaseAdapter {
+public class ArtistAdapter extends BaseAdapter implements Parcelable {
     Context context;
     List<Artist> artists;
     Picasso mPicasso;
@@ -34,6 +36,12 @@ public class ArtistAdapter extends BaseAdapter {
         this.mPicasso = Picasso.with(context);
         this.mInflater = LayoutInflater.from(context);
     }
+
+    @Override
+    public int describeContents() { return 0; }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {}
 
     @Override
     public int getCount() {

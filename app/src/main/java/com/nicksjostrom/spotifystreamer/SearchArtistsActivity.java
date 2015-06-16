@@ -2,7 +2,6 @@ package com.nicksjostrom.spotifystreamer;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -27,7 +26,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 
-public class SearchArtists extends Activity {
+public class SearchArtistsActivity extends Activity {
 
     public static final String SELECTED_ARTIST_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_NAME";
     public static final String SELECTED_ARTIST_ID = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_ID";
@@ -51,7 +50,7 @@ public class SearchArtists extends Activity {
             adapter.notifyDataSetChanged();
             if (artistList.size() == 0) {
                 // if artistList contains 0 artists, toast
-                Toast.makeText(SearchArtists.this, "No artists found. Please refine your search.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SearchArtistsActivity.this, "No artists found. Please refine your search.", Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -65,8 +64,15 @@ public class SearchArtists extends Activity {
         api = new SpotifyApi();
         spotify = api.getService();
 
-        // initialize ArtistAdapter with empty list, updating this will update the listview (once notified of changes)
-        adapter = new ArtistAdapter(this, artistList);
+        if (savedInstanceState != null) {
+            // get existing ArtistAdapter from saved instance
+            adapter = savedInstanceState.getParcelable("artists");
+        }
+        else {
+            // initialize ArtistAdapter with empty list, updating this will update the listview (once notified of changes)
+            adapter = new ArtistAdapter(this, artistList);
+        }
+
         // get listview from activity
         artistListView = (ListView) findViewById(R.id.artistList);
         // set listview adapter so we can update the UI
@@ -83,7 +89,7 @@ public class SearchArtists extends Activity {
                 Log.d("name: ", ""+artist.name);
 
                 // create new intent to TopTenTracks activity for this artist
-                Intent intent = new Intent(SearchArtists.this, TopTenTracks.class);
+                Intent intent = new Intent(SearchArtistsActivity.this, TopTenTracksActivity.class);
                 // place extra data so we know what artist to display
                 intent.putExtra(SELECTED_ARTIST_NAME, artist.name);
                 intent.putExtra(SELECTED_ARTIST_ID, artist.id);
@@ -106,8 +112,8 @@ public class SearchArtists extends Activity {
                     // notify list change
                     adapter.notifyDataSetChanged();
 
-                    // GetArtists with search string
-                    new GetArtists().execute(searchText.getText().toString());
+                    // getArtists method with search string. calls spotify api
+                    getArtists(searchText.getText().toString());
 
                     return true;
                 }
@@ -123,40 +129,41 @@ public class SearchArtists extends Activity {
         return true;
     }
 
-    /*
-    AsyncTask to make API call. Keep process off of UI thread
-     */
-    private class GetArtists extends AsyncTask<String, Void, Void> {
-        protected Void doInBackground(String... params) {
-            String artist = params[0];
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
 
-            spotify.searchArtists(artist, new Callback<ArtistsPager>() {
-                @Override
-                public void success(ArtistsPager artistsPager, Response response) {
-                    // get list of found artists
-                    List<Artist> artists = artistsPager.artists.items;
-                    // clear adapter's list
-                    artistList.clear();
-                    // add all artists to adapter list
-                    artistList.addAll(artists);
+        savedInstanceState.putParcelable("artists", adapter);
+    }
 
-                    Log.d("success. List: ", artistList.toString());
+    // get artist spotify api call
+    public void getArtists(String artist) {
 
-                    runOnUiThread(postExecute);
-                }
+        // callback is async
+        spotify.searchArtists(artist, new Callback<ArtistsPager>() {
+            @Override
+            public void success(ArtistsPager artistsPager, Response response) {
+                // get list of found artists
+                List<Artist> artists = artistsPager.artists.items;
+                // clear adapter's list
+                artistList.clear();
+                // add all artists to adapter list
+                artistList.addAll(artists);
 
-                @Override
-                public void failure(RetrofitError error) {
-                    // toast on failure
-                    artistList.clear();
+                Log.d("success. List: ", artistList.toString());
 
-                    Log.d("No artists found...","");
+                runOnUiThread(postExecute);
+            }
 
-                    runOnUiThread(postExecute);
-                }
-            });
+            @Override
+            public void failure(RetrofitError error) {
+                // toast on failure
+                artistList.clear();
 
-            return null;
-        }
+                Log.d("No artists found...","");
+
+                runOnUiThread(postExecute);
+            }
+        });
     }
 }

@@ -1,6 +1,8 @@
 package com.nicksjostrom.spotifystreamer;
 
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +21,7 @@ import kaaes.spotify.webapi.android.models.Track;
  *
  * Adapter class for Track ListView
  */
-public class TrackAdapter extends BaseAdapter{
+public class TrackAdapter extends BaseAdapter implements Parcelable{
     Context context;
     List<Track> tracks;
     Picasso mPicasso;
@@ -32,6 +34,12 @@ public class TrackAdapter extends BaseAdapter{
         this.mPicasso = Picasso.with(context);
         this.mInflater = LayoutInflater.from(context);
     }
+
+    @Override
+    public int describeContents() { return 0; }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {}
 
     @Override
     public int getCount() {
