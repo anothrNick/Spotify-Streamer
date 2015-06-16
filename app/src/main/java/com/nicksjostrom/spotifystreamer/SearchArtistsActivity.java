@@ -32,7 +32,7 @@ public class SearchArtistsActivity extends Activity {
     public static final String SELECTED_ARTIST_ID = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_ID";
 
     ArtistAdapter adapter;
-    List<Artist> artistList = new ArrayList<Artist>();
+    List<Artist> artistList = new ArrayList<>();
     ListView artistListView;
     EditText searchText;
 
@@ -99,6 +99,7 @@ public class SearchArtistsActivity extends Activity {
         });
 
         // initialize search field
+
         searchText = (EditText) findViewById(R.id.search);
 
         // create event listener for 'Done' button to search
