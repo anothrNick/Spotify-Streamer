@@ -3,15 +3,13 @@ package com.nicksjostrom.spotifystreamer;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -25,7 +23,6 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-
 public class SearchArtistsActivity extends Activity {
 
     public static final String SELECTED_ARTIST_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_NAME";
@@ -35,6 +32,7 @@ public class SearchArtistsActivity extends Activity {
     List<Artist> artistList = new ArrayList<>();
     ListView artistListView;
     EditText searchText;
+    SearchView searchView;
 
     SpotifyApi api;
     SpotifyService spotify;
@@ -99,7 +97,29 @@ public class SearchArtistsActivity extends Activity {
         });
 
         // initialize search field
+        searchView = (SearchView) findViewById(R.id.search_artist);
 
+        searchView.setOnQueryTextListener(
+                new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        // Start searching on submit
+                        // new search, clear artist list
+                        artistList.clear();
+
+                        // notify list change
+                        adapter.notifyDataSetChanged();
+
+                        // getArtists method with search string. calls spotify api
+                        getArtists(searchText.getText().toString());
+                        return true;
+                    }
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        return false;
+                    }
+            });
+/*
         searchText = (EditText) findViewById(R.id.search);
 
         // create event listener for 'Done' button to search
@@ -121,6 +141,7 @@ public class SearchArtistsActivity extends Activity {
                 return false;
             }
         });
+        */
     }
 
     @Override

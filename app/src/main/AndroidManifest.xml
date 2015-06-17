@@ -24,7 +24,7 @@
             android:parentActivityName=".SearchArtistsActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.nicksjostrom.spotifystreamer.SearchArtists" />
+                android:value="com.nicksjostrom.spotifystreamer.SearchArtistsActivity" />
         </activity>
     </application>
 
