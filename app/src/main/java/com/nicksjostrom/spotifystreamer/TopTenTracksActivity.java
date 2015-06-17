@@ -1,11 +1,10 @@
 package com.nicksjostrom.spotifystreamer;
 
 import android.annotation.TargetApi;
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ListView;
 
@@ -22,10 +21,10 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class TopTenTracksActivity extends Activity {
+public class TopTenTracksActivity extends AppCompatActivity {
 
     TrackAdapter adapter;
-    List<Track> trackList = new ArrayList<Track>();
+    List<Track> trackList = new ArrayList<>();
     ListView trackListView;
 
     @Override
@@ -46,9 +45,6 @@ public class TopTenTracksActivity extends Activity {
         Intent intent = getIntent();
         String artist_name = intent.getStringExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME);
         String artist_id = intent.getStringExtra(SearchArtistsActivity.SELECTED_ARTIST_ID);
-
-        // ensure we have an action bar
-        assert getActionBar() != null;
 
         // set subtitle with artist name
         actionBarSetup(artist_name);
@@ -76,8 +72,7 @@ public class TopTenTracksActivity extends Activity {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void actionBarSetup(String sub) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            ActionBar ab = getActionBar();
-            ab.setSubtitle(sub);
+            getSupportActionBar().setSubtitle(sub);
         }
     }
 
@@ -87,7 +82,7 @@ public class TopTenTracksActivity extends Activity {
         SpotifyService spotify = api.getService();
 
         // http parameters for request. in this case, country code for top tracks
-        Map<String, Object> parameters = new HashMap<String, Object>();
+        Map<String, Object> parameters = new HashMap<>();
         parameters.put("country","us");
 
         // make api request, callback is async

@@ -1,11 +1,13 @@
 package com.nicksjostrom.spotifystreamer;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.NavUtils;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
@@ -23,7 +25,7 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class SearchArtistsActivity extends Activity {
+public class SearchArtistsActivity extends AppCompatActivity  {
 
     public static final String SELECTED_ARTIST_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_NAME";
     public static final String SELECTED_ARTIST_ID = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_ID";
@@ -31,7 +33,6 @@ public class SearchArtistsActivity extends Activity {
     ArtistAdapter adapter;
     List<Artist> artistList = new ArrayList<>();
     ListView artistListView;
-    EditText searchText;
     SearchView searchView;
 
     SpotifyApi api;
@@ -111,7 +112,7 @@ public class SearchArtistsActivity extends Activity {
                         adapter.notifyDataSetChanged();
 
                         // getArtists method with search string. calls spotify api
-                        getArtists(searchText.getText().toString());
+                        getArtists(query);
                         return true;
                     }
                     @Override
@@ -156,6 +157,22 @@ public class SearchArtistsActivity extends Activity {
         super.onSaveInstanceState(savedInstanceState);
 
         savedInstanceState.putParcelable("artists", adapter);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == android.R.id.home) {
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     // get artist spotify api call
