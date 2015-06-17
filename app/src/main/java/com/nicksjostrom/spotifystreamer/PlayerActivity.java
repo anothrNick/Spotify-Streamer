@@ -3,6 +3,7 @@ package com.nicksjostrom.spotifystreamer;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -58,15 +59,30 @@ public class PlayerActivity extends AppCompatActivity {
         }
 
         player = new MediaPlayer();
+        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
-        try {
-            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            player.setDataSource(previewUrl);
-            player.prepare();
-            player.start();
-        } catch(IOException e) {
-            Log.w("IO Exception: ", e.toString());
+        new PrepareTrack().execute(previewUrl);
+    }
+
+    public void play() {
+        player.start();
+    }
+
+    private class PrepareTrack extends AsyncTask<String, Void, Void>{
+        protected Void doInBackground(String... params) {
+            try {
+                player.reset();
+                player.setDataSource(params[0]);
+                player.prepare();
+            }
+            catch (IllegalArgumentException e) { Log.w("IO Exception: ", e.toString()); }
+            catch (IOException e) { Log.w("IO Exception: ", e.toString()); }
+
+            return null;
         }
 
+        protected void onPostExecute(){
+            player.start();
+        }
     }
 }
