@@ -6,6 +6,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -23,9 +25,17 @@ import retrofit.client.Response;
 
 public class TopTenTracksActivity extends AppCompatActivity {
 
+    public static final String SELECTED_TRACK_ID = "com.nicksjostrom.spotifystreamer.SELECTED_TRACK_ID";
+    public static final String SELECTED_TRACK_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_TRACK_NAME";
+    public static final String SELECTED_ALBUM_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_ALBUM_NAME";
+    public static final String SELECTED_ALBUM_IMAGE = "com.nicksjostrom.spotifystreamer.SELECTED_ALBUM_IMAGE";
+    public static final String SELECTED_PREVIEW_URL = "com.nicksjostrom.spotifystreamer.SELECTED_PREVIEW_URL";
+
     TrackAdapter adapter;
     List<Track> trackList = new ArrayList<>();
     ListView trackListView;
+
+    String artistName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,19 +53,49 @@ public class TopTenTracksActivity extends AppCompatActivity {
 
         // get intent and extra string parameters
         Intent intent = getIntent();
-        String artist_name = intent.getStringExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME);
-        String artist_id = intent.getStringExtra(SearchArtistsActivity.SELECTED_ARTIST_ID);
+        artistName = intent.getStringExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME);
+        String artistId = intent.getStringExtra(SearchArtistsActivity.SELECTED_ARTIST_ID);
 
         // set subtitle with artist name
-        actionBarSetup(artist_name);
+        actionBarSetup(artistName);
 
         // get listview from activity
         trackListView = (ListView) findViewById(R.id.trackList);
         // set listview adapter so we can update the UI
         trackListView.setAdapter(adapter);
 
+        // set on click listener for tracks
+        trackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Track track = (Track) trackListView.getItemAtPosition(i);
+                String image_url = "";
+                String preview_url = "";
+
+                if(track.album.images.size() > 0)
+                    image_url = track.album.images.get(0).url;
+
+                preview_url = track.preview_url;
+
+                Log.d("id: ", track.id);
+                Log.d("track: ", track.name);
+                Log.d("album: ", track.album.name);
+
+                Intent intent = new Intent(TopTenTracksActivity.this, PlayerActivity.class);
+
+                intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME, artistName);
+                intent.putExtra(SELECTED_TRACK_ID, track.id);
+                intent.putExtra(SELECTED_TRACK_NAME, track.name);
+                intent.putExtra(SELECTED_ALBUM_NAME, track.album.name);
+                intent.putExtra(SELECTED_ALBUM_IMAGE, image_url);
+                intent.putExtra(SELECTED_PREVIEW_URL, preview_url);
+
+                startActivity(intent);
+            }
+        });
+
         // get tracks spotify API call, if we haven't saved the instance
-        if(savedInstanceState == null) getTracks(artist_id);
+        if(savedInstanceState == null) getTracks(artistId);
     }
 
     @Override
