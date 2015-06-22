@@ -1,5 +1,6 @@
 package com.nicksjostrom.spotifystreamer;
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -74,16 +75,38 @@ public class TopTenTracksFragment extends Fragment {
                 Log.d("track: ", track.name);
                 Log.d("album: ", track.album.name);
 
-                Intent intent = new Intent(getActivity(), PlayerActivity.class);
+                /* if user is on a tablet, start new fragment in container*/
+                if(SearchArtistsActivity.mDualPane) {
+                    Bundle bundle = new Bundle();
 
-                intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME, artistName);
-                intent.putExtra(SearchArtistsActivity.SELECTED_TRACK_ID, track.id);
-                intent.putExtra(SearchArtistsActivity.SELECTED_TRACK_NAME, track.name);
-                intent.putExtra(SearchArtistsActivity.SELECTED_ALBUM_NAME, track.album.name);
-                intent.putExtra(SearchArtistsActivity.SELECTED_ALBUM_IMAGE, image_url);
-                intent.putExtra(SearchArtistsActivity.SELECTED_PREVIEW_URL, preview_url);
+                    bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_NAME, artistName);
+                    bundle.putString(SearchArtistsActivity.SELECTED_TRACK_ID, track.id);
+                    bundle.putString(SearchArtistsActivity.SELECTED_TRACK_NAME, track.name);
+                    bundle.putString(SearchArtistsActivity.SELECTED_ALBUM_NAME, track.album.name);
+                    bundle.putString(SearchArtistsActivity.SELECTED_ALBUM_IMAGE, image_url);
+                    bundle.putString(SearchArtistsActivity.SELECTED_PREVIEW_URL, preview_url);
 
-                startActivity(intent);
+                    PlayerFragment player = new PlayerFragment();
+                    player.setArguments(bundle);
+
+                    FragmentManager fm = getFragmentManager();
+                    //FragmentTransaction ft = fm.beginTransaction();
+                    //ft.replace(R.id.player_container, player).addToBackStack("player").commit();
+                    player.show(fm, "player");
+                }
+                /* user is on mobile phone, start new activity to create fragment*/
+                else {
+                    Intent intent = new Intent(getActivity(), PlayerActivity.class);
+
+                    intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME, artistName);
+                    intent.putExtra(SearchArtistsActivity.SELECTED_TRACK_ID, track.id);
+                    intent.putExtra(SearchArtistsActivity.SELECTED_TRACK_NAME, track.name);
+                    intent.putExtra(SearchArtistsActivity.SELECTED_ALBUM_NAME, track.album.name);
+                    intent.putExtra(SearchArtistsActivity.SELECTED_ALBUM_IMAGE, image_url);
+                    intent.putExtra(SearchArtistsActivity.SELECTED_PREVIEW_URL, preview_url);
+
+                    startActivity(intent);
+                }
             }
         });
 

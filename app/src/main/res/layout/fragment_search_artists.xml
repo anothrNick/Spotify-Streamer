@@ -15,6 +15,7 @@
             android:layout_height="wrap_content"
             android:inputType="text"
             app:iconifiedByDefault="false"
+            app:queryHint="@string/search_placeholder"
             android:id="@+id/search_artist"/>
 
         <ListView

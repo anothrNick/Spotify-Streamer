@@ -2,13 +2,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     tools:context=".SearchArtistsActivity">
 
     <fragment android:name="com.nicksjostrom.spotifystreamer.SearchArtistsFragment"
         android:id="@+id/search_artist_container"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_search_artists" />
+
+    <FrameLayout
+        android:id="@+id/track_list_container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2"/>
 
 </LinearLayout>

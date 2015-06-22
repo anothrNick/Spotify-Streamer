@@ -92,6 +92,7 @@ public class ArtistAdapter extends BaseAdapter implements Parcelable {
         if(!image_url.isEmpty()) {
             // use Picasso to load image into artist_item.xml image view
             mPicasso.load(image_url)
+                    .fit()
                     .into(holder.imageView);
         }
 

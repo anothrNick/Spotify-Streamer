@@ -1,10 +1,10 @@
 package com.nicksjostrom.spotifystreamer;
 
+import android.app.DialogFragment;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +18,7 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 
-public class PlayerFragment extends Fragment {
+public class PlayerFragment extends DialogFragment {
 
     boolean isCompleted = false;
     boolean isLoaded = false;

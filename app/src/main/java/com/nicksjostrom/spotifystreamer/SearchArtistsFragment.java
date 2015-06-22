@@ -1,6 +1,9 @@
 package com.nicksjostrom.spotifystreamer;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.widget.SearchView;
@@ -33,6 +36,8 @@ public class SearchArtistsFragment extends Fragment {
 
     SpotifyApi api;
     SpotifyService spotify;
+
+    private static int lastItem = -1;
 
     /*
     Runnable object to call on UI thread when Spotify API callbacks are made
@@ -72,6 +77,7 @@ public class SearchArtistsFragment extends Fragment {
         artistListView = (ListView) view.findViewById(R.id.artistList);
         // set listview adapter so we can update the UI
         artistListView.setAdapter(adapter);
+        artistListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         // set onclick listener so we can click on an artist and view their top 10
         artistListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -80,24 +86,40 @@ public class SearchArtistsFragment extends Fragment {
                 // get artist from listview
                 Artist artist = (Artist) artistListView.getItemAtPosition(position);
 
-                //Bundle bundle = new Bundle();
-                //bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_NAME, artist.name);
-                //bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_ID, artist.id);
+                Log.d("tag", "Is dual pane? " + SearchArtistsActivity.mDualPane);
 
-                //TopTenTracksFragment frag = new TopTenTracksFragment();
-                //frag.setArguments(bundle);
+                /* if user is on a tablet, start new fragment in container*/
+                if(SearchArtistsActivity.mDualPane) {
 
-                //FragmentManager fm = getFragmentManager();
-                //FragmentTransaction ft = fm.beginTransaction();
-                //ft.replace(R.id.search_artist_container, frag).addToBackStack("topten").commit();
+                    view.setBackgroundColor(Color.parseColor("#81b71a"));
 
-                // create new intent to TopTenTracks activity for this artist
-                Intent intent = new Intent(getActivity(), TopTenTracksActivity.class);
-                // place extra data so we know what artist to display
-                intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME, artist.name);
-                intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_ID, artist.id);
-                // start activity
-                startActivity(intent);
+                    if(lastItem != -1 && lastItem != position) {
+                        parent.getChildAt(lastItem).setBackgroundColor(Color.parseColor("#EEEEEE"));
+                    }
+
+                    lastItem = position;
+
+                    Bundle bundle = new Bundle();
+                    bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_NAME, artist.name);
+                    bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_ID, artist.id);
+
+                    TopTenTracksFragment frag = new TopTenTracksFragment();
+                    frag.setArguments(bundle);
+
+                    FragmentManager fm = getFragmentManager();
+                    FragmentTransaction ft = fm.beginTransaction();
+                    ft.replace(R.id.track_list_container, frag).addToBackStack("topten").commit();
+                }
+                /* user is on mobile phone, start new activity to create fragment*/
+                else {
+                    // create new intent to TopTenTracks activity for this artist
+                    Intent intent = new Intent(getActivity(), TopTenTracksActivity.class);
+                    // place extra data so we know what artist to display
+                    intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME, artist.name);
+                    intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_ID, artist.id);
+                    // start activity
+                    startActivity(intent);
+                }
             }
         });
 

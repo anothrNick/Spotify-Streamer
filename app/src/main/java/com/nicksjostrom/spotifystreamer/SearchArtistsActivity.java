@@ -1,7 +1,5 @@
 package com.nicksjostrom.spotifystreamer;
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -19,15 +17,20 @@ public class SearchArtistsActivity extends AppCompatActivity  {
     public static final String SELECTED_ALBUM_IMAGE = "com.nicksjostrom.spotifystreamer.SELECTED_ALBUM_IMAGE";
     public static final String SELECTED_PREVIEW_URL = "com.nicksjostrom.spotifystreamer.SELECTED_PREVIEW_URL";
 
+    public static boolean mDualPane = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_artists);
 
-        FragmentManager fm = getFragmentManager();
+        if(findViewById(R.id.track_list_container) != null) {
+            mDualPane = true;
+        }
+        //FragmentManager fm = getFragmentManager();
 
-        FragmentTransaction ft = fm.beginTransaction();
-        ft.add(R.id.search_artist_container, new SearchArtistsFragment()).addToBackStack("search").commit();
+        //FragmentTransaction ft = fm.beginTransaction();
+        //ft.add(R.id.search_artist_container, new SearchArtistsFragment()).addToBackStack("search").commit();
     }
 
     @Override
