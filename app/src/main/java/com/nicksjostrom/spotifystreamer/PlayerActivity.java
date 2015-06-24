@@ -16,11 +16,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         Bundle bundle = new Bundle();
         bundle.putInt(SearchArtistsActivity.TRACK_INDEX, intent.getIntExtra(SearchArtistsActivity.TRACK_INDEX,0));
-        bundle.putString(SearchArtistsActivity.SELECTED_TRACK_NAME, intent.getStringExtra(SearchArtistsActivity.SELECTED_TRACK_NAME));
-        bundle.putString(SearchArtistsActivity.SELECTED_ALBUM_NAME, intent.getStringExtra(SearchArtistsActivity.SELECTED_ALBUM_NAME));
         bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_NAME, intent.getStringExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME));
-        bundle.putString(SearchArtistsActivity.SELECTED_ALBUM_IMAGE, intent.getStringExtra(SearchArtistsActivity.SELECTED_ALBUM_IMAGE));
-        bundle.putString(SearchArtistsActivity.SELECTED_PREVIEW_URL, intent.getStringExtra(SearchArtistsActivity.SELECTED_PREVIEW_URL));
 
         PlayerFragment frag = new PlayerFragment();
         frag.setArguments(bundle);

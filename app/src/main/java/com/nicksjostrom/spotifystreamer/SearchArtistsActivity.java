@@ -20,12 +20,6 @@ public class SearchArtistsActivity extends AppCompatActivity  {
     public static final String SELECTED_ARTIST_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_NAME";
     public static final String SELECTED_ARTIST_ID = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_ID";
 
-    public static final String SELECTED_TRACK_ID = "com.nicksjostrom.spotifystreamer.SELECTED_TRACK_ID";
-    public static final String SELECTED_TRACK_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_TRACK_NAME";
-    public static final String SELECTED_ALBUM_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_ALBUM_NAME";
-    public static final String SELECTED_ALBUM_IMAGE = "com.nicksjostrom.spotifystreamer.SELECTED_ALBUM_IMAGE";
-    public static final String SELECTED_PREVIEW_URL = "com.nicksjostrom.spotifystreamer.SELECTED_PREVIEW_URL";
-
     public static boolean mDualPane = false;
 
     //public ArrayList<Track> trackList = new ArrayList<>();

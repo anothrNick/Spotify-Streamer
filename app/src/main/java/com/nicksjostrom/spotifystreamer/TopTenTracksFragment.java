@@ -61,19 +61,6 @@ public class TopTenTracksFragment extends Fragment {
         trackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Track track = SearchArtistsActivity.trackList.get(i);
-                String image_url = "";
-                String preview_url;
-
-                if(track.album.images.size() > 0) {
-                    image_url = track.album.images.get(0).url;
-                }
-                preview_url = track.preview_url;
-
-                Log.d("id: ", track.id);
-                Log.d("track: ", track.name);
-                Log.d("album: ", image_url);
-
                 /* if user is on a tablet, start new fragment in container*/
                 if(SearchArtistsActivity.mDualPane) {
                     Bundle bundle = new Bundle();
@@ -81,18 +68,11 @@ public class TopTenTracksFragment extends Fragment {
                     bundle.putInt(SearchArtistsActivity.TRACK_INDEX, i);
 
                     bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_NAME, artistName);
-                    bundle.putString(SearchArtistsActivity.SELECTED_TRACK_ID, track.id);
-                    bundle.putString(SearchArtistsActivity.SELECTED_TRACK_NAME, track.name);
-                    bundle.putString(SearchArtistsActivity.SELECTED_ALBUM_NAME, track.album.name);
-                    bundle.putString(SearchArtistsActivity.SELECTED_ALBUM_IMAGE, image_url);
-                    bundle.putString(SearchArtistsActivity.SELECTED_PREVIEW_URL, preview_url);
 
                     PlayerFragment player = new PlayerFragment();
                     player.setArguments(bundle);
 
                     FragmentManager fm = getFragmentManager();
-                    //FragmentTransaction ft = fm.beginTransaction();
-                    //ft.replace(R.id.player_container, player).addToBackStack("player").commit();
                     player.show(fm, "player");
                 }
                 /* user is on mobile phone, start new activity to create fragment*/
@@ -102,11 +82,6 @@ public class TopTenTracksFragment extends Fragment {
                     intent.putExtra(SearchArtistsActivity.TRACK_INDEX, i);
 
                     intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME, artistName);
-                    intent.putExtra(SearchArtistsActivity.SELECTED_TRACK_ID, track.id);
-                    intent.putExtra(SearchArtistsActivity.SELECTED_TRACK_NAME, track.name);
-                    intent.putExtra(SearchArtistsActivity.SELECTED_ALBUM_NAME, track.album.name);
-                    intent.putExtra(SearchArtistsActivity.SELECTED_ALBUM_IMAGE, image_url);
-                    intent.putExtra(SearchArtistsActivity.SELECTED_PREVIEW_URL, preview_url);
 
                     startActivity(intent);
                 }
@@ -144,22 +119,6 @@ public class TopTenTracksFragment extends Fragment {
                 SearchArtistsActivity.trackList.clear();
                 // add all
                 SearchArtistsActivity.trackList.addAll(tracks.tracks);
-                /*
-                for(Track track : tracks.tracks) {
-                    CustomTrack customTrack = new CustomTrack();
-                    customTrack.name = track.name;
-                    customTrack.albumName = track.album.name;
-                    customTrack.id = track.id;
-                    customTrack.trackPreview = track.preview_url;
-
-                    if(track.album.images.size() > 0)
-                        customTrack.albumUrl = track.album.images.get(0).url;
-                    else
-                        customTrack.albumUrl = "";
-
-                    trackList.add(customTrack);
-                }
-                */
 
                 // update list view adapter on UI thread
                 getActivity().runOnUiThread(new Runnable() {
