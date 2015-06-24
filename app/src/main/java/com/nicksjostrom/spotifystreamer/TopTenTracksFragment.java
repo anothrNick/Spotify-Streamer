@@ -11,9 +11,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -28,7 +26,6 @@ import retrofit.client.Response;
 public class TopTenTracksFragment extends Fragment {
 
     TrackAdapter adapter;
-    List<Track> trackList = new ArrayList<>();
     ListView trackListView;
 
     String artistName;
@@ -38,13 +35,15 @@ public class TopTenTracksFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_top_ten_tracks, container, false);
 
+        SearchArtistsActivity.trackList.clear();
+
         if (savedInstanceState != null) {
             // get existing TrackAdapter
             adapter = savedInstanceState.getParcelable("tracks");
         }
         else {
             // initialize TrackAdapter with empty list, updating this will update the listview (once notified of changes)
-            adapter = new TrackAdapter(getActivity(), trackList);
+            adapter = new TrackAdapter(getActivity(), SearchArtistsActivity.trackList);
         }
 
         // get intent and extra string parameters
@@ -62,22 +61,24 @@ public class TopTenTracksFragment extends Fragment {
         trackListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Track track = (Track) trackListView.getItemAtPosition(i);
+                Track track = SearchArtistsActivity.trackList.get(i);
                 String image_url = "";
                 String preview_url;
 
-                if(track.album.images.size() > 0)
+                if(track.album.images.size() > 0) {
                     image_url = track.album.images.get(0).url;
-
+                }
                 preview_url = track.preview_url;
 
                 Log.d("id: ", track.id);
                 Log.d("track: ", track.name);
-                Log.d("album: ", track.album.name);
+                Log.d("album: ", image_url);
 
                 /* if user is on a tablet, start new fragment in container*/
                 if(SearchArtistsActivity.mDualPane) {
                     Bundle bundle = new Bundle();
+
+                    bundle.putInt(SearchArtistsActivity.TRACK_INDEX, i);
 
                     bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_NAME, artistName);
                     bundle.putString(SearchArtistsActivity.SELECTED_TRACK_ID, track.id);
@@ -97,6 +98,8 @@ public class TopTenTracksFragment extends Fragment {
                 /* user is on mobile phone, start new activity to create fragment*/
                 else {
                     Intent intent = new Intent(getActivity(), PlayerActivity.class);
+
+                    intent.putExtra(SearchArtistsActivity.TRACK_INDEX, i);
 
                     intent.putExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME, artistName);
                     intent.putExtra(SearchArtistsActivity.SELECTED_TRACK_ID, track.id);
@@ -138,9 +141,25 @@ public class TopTenTracksFragment extends Fragment {
             @Override
             public void success(Tracks tracks, Response response) {
                 // we have tracks, clear current
-                trackList.clear();
+                SearchArtistsActivity.trackList.clear();
                 // add all
-                trackList.addAll(tracks.tracks);
+                SearchArtistsActivity.trackList.addAll(tracks.tracks);
+                /*
+                for(Track track : tracks.tracks) {
+                    CustomTrack customTrack = new CustomTrack();
+                    customTrack.name = track.name;
+                    customTrack.albumName = track.album.name;
+                    customTrack.id = track.id;
+                    customTrack.trackPreview = track.preview_url;
+
+                    if(track.album.images.size() > 0)
+                        customTrack.albumUrl = track.album.images.get(0).url;
+                    else
+                        customTrack.albumUrl = "";
+
+                    trackList.add(customTrack);
+                }
+                */
 
                 // update list view adapter on UI thread
                 getActivity().runOnUiThread(new Runnable() {

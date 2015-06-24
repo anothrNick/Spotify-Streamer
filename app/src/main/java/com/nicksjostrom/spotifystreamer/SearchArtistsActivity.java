@@ -6,8 +6,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+
+import kaaes.spotify.webapi.android.models.Track;
+
 public class SearchArtistsActivity extends AppCompatActivity  {
 
+    // made this static so we can access it from the player without having to make a new request when forward or previous is pressed
+    // needs to be in SearchArtistsActivity so we can access it from our Master-Detail layout as well
+    public static ArrayList<Track> trackList = new ArrayList<>();
+
+    public static final String TRACK_INDEX = "com.nicksjostrom.spotifystreamer.TRACK_INDEX";
     public static final String SELECTED_ARTIST_NAME = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_NAME";
     public static final String SELECTED_ARTIST_ID = "com.nicksjostrom.spotifystreamer.SELECTED_ARTIST_ID";
 
@@ -18,6 +27,8 @@ public class SearchArtistsActivity extends AppCompatActivity  {
     public static final String SELECTED_PREVIEW_URL = "com.nicksjostrom.spotifystreamer.SELECTED_PREVIEW_URL";
 
     public static boolean mDualPane = false;
+
+    //public ArrayList<Track> trackList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

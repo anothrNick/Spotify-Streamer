@@ -15,6 +15,7 @@ public class PlayerActivity extends AppCompatActivity {
         Intent intent = getIntent();
 
         Bundle bundle = new Bundle();
+        bundle.putInt(SearchArtistsActivity.TRACK_INDEX, intent.getIntExtra(SearchArtistsActivity.TRACK_INDEX,0));
         bundle.putString(SearchArtistsActivity.SELECTED_TRACK_NAME, intent.getStringExtra(SearchArtistsActivity.SELECTED_TRACK_NAME));
         bundle.putString(SearchArtistsActivity.SELECTED_ALBUM_NAME, intent.getStringExtra(SearchArtistsActivity.SELECTED_ALBUM_NAME));
         bundle.putString(SearchArtistsActivity.SELECTED_ARTIST_NAME, intent.getStringExtra(SearchArtistsActivity.SELECTED_ARTIST_NAME));
@@ -26,6 +27,6 @@ public class PlayerActivity extends AppCompatActivity {
 
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
-        ft.add(R.id.player_container, frag).addToBackStack("player").commit();
+        ft.replace(R.id.player_container, frag).addToBackStack("player").commit();
     }
 }

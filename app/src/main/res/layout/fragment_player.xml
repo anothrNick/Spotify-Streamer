@@ -1,12 +1,15 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context="com.nicksjostrom.spotifystreamer.PlayerFragment">
-
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true" >
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_gravity="center" >
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal" >
 
         <TextView android:id="@+id/artist_name"
             android:text="Artist"
@@ -72,7 +75,7 @@
             android:layout_width="fill_parent" android:layout_height="wrap_content"
             android:layout_below="@+id/progress">
 
-            <ImageButton android:id="@+id/backBtn"
+            <ImageButton android:id="@+id/previousBtn"
                 android:src="@android:drawable/ic_media_previous"
                 android:tint="@color/primary_dark_material_dark"
                 android:layout_width="0.0dip"
@@ -87,7 +90,7 @@
                 android:layout_height="70dp"
                 android:layout_weight="1.0"
                 android:layout_below="@id/song_nav"
-                android:layout_toRightOf="@id/backBtn"
+                android:layout_toRightOf="@id/previousBtn"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp" />
 
@@ -98,7 +101,7 @@
                 android:layout_height="70dp"
                 android:layout_weight="1.0"
                 android:layout_below="@id/song_nav"
-                android:layout_toRightOf="@id/backBtn"
+                android:layout_toRightOf="@id/previousBtn"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
                 android:visibility="gone" />
@@ -117,5 +120,6 @@
 
 
     </RelativeLayout>
+    </ScrollView>
 
 </FrameLayout>

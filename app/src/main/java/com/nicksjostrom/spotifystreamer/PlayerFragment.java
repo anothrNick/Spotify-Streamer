@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -18,10 +19,13 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 
+import kaaes.spotify.webapi.android.models.Track;
+
 public class PlayerFragment extends DialogFragment {
 
-    boolean isCompleted = false;
+    boolean attemptedToPlay = false;
     boolean isLoaded = false;
+    boolean saveState = false;
 
     TextView artistNameText;
     TextView albumNameText;
@@ -30,26 +34,34 @@ public class PlayerFragment extends DialogFragment {
 
     ImageButton playButton;
     ImageButton pauseButton;
+    ImageButton forwardButton;
+    ImageButton previousButton;
+
     SeekBar songNav;
     TextView progressView;
     TextView timeView;
 
     MediaPlayer player;
 
-    String previewUrl;
+    int trackIndex = 0;
+
+    String artistName;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        if(savedInstanceState != null){
+            saveState = false;
+        }
+
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
         Bundle args = getArguments();
 
-        String trackName = args.getString(SearchArtistsActivity.SELECTED_TRACK_NAME);
-        String albumName = args.getString(SearchArtistsActivity.SELECTED_ALBUM_NAME);
-        String artistName = args.getString(SearchArtistsActivity.SELECTED_ARTIST_NAME);
-        String albumImage = args.getString(SearchArtistsActivity.SELECTED_ALBUM_IMAGE);
-        previewUrl = args.getString(SearchArtistsActivity.SELECTED_PREVIEW_URL);
+        trackIndex = args.getInt(SearchArtistsActivity.TRACK_INDEX);
+
+        artistName = args.getString(SearchArtistsActivity.SELECTED_ARTIST_NAME);
 
         coverImage = (ImageView) view.findViewById(R.id.cover_art);
         artistNameText = (TextView) view.findViewById(R.id.artist_name);
@@ -58,6 +70,22 @@ public class PlayerFragment extends DialogFragment {
 
         playButton = (ImageButton) view.findViewById(R.id.playBtn);
         pauseButton = (ImageButton) view.findViewById(R.id.pauseBtn);
+        forwardButton = (ImageButton) view.findViewById(R.id.forwardBtn);
+        previousButton = (ImageButton) view.findViewById(R.id.previousBtn);
+
+        forwardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                forward();
+            }
+        });
+
+        previousButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                previous();
+            }
+        });
 
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,11 +105,82 @@ public class PlayerFragment extends DialogFragment {
         progressView = (TextView) view.findViewById(R.id.progress);
         timeView = (TextView) view.findViewById(R.id.time);
 
+        loadTrack();
+
+        return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        saveState = true;
+    }
+
+    @Override
+    public void onDestroy() {
+        if(player != null) {
+            player.release();
+            player = null;
+        }
+        super.onDestroy();
+    }
+
+    public void done() {
+        pause();
+        player.seekTo(0);
+    }
+
+    public void play() {
+        if(isLoaded){
+            attemptedToPlay = false;
+            toggleBtnView();
+            player.start();
+            new Seek().execute();
+        }
+        else {
+            attemptedToPlay = true;
+        }
+    }
+
+    public void pause() {
+        if(player.isPlaying()) player.pause();
+        toggleBtnView();
+    }
+
+    public void forward(){
+        trackIndex ++;
+        if( trackIndex > (SearchArtistsActivity.trackList.size()-1)) trackIndex = 0;
+        if(player != null && player.isPlaying()) {
+            done();
+            attemptedToPlay = true;
+        }
+        loadTrack();
+    }
+
+    public void previous(){
+        trackIndex --;
+        if( trackIndex < 0 ) trackIndex = (SearchArtistsActivity.trackList.size()-1);
+        if(player != null && player.isPlaying()) {
+            done();
+            attemptedToPlay = true;
+        }
+        loadTrack();
+    }
+
+    public void loadTrack() {
+        Track track = SearchArtistsActivity.trackList.get(trackIndex);
+        String trackName = track.name;
+        String albumName = track.album.name;
+        String albumImage = "";
+        String previewUrl = track.preview_url;
+
+        if(track.album.images.size() > 0){
+            albumImage = track.album.images.get(0).url;
+        }
+
         artistNameText.setText(artistName);
         albumNameText.setText(albumName);
         trackNameText.setText(trackName);
-
-        Log.d("Preview URL: ", previewUrl);
 
         if(!albumImage.isEmpty()) {
             Picasso.with(getActivity())
@@ -89,6 +188,11 @@ public class PlayerFragment extends DialogFragment {
                     .into(coverImage);
         }
 
+        if(player != null) {
+            player.stop();
+            player.reset();
+            player.release();
+        }
         player = new MediaPlayer();
 
         try {
@@ -103,6 +207,10 @@ public class PlayerFragment extends DialogFragment {
 
                     songNav.setMax(player.getDuration());
                     timeView.setText("0:" + (int) (player.getDuration() * .001));
+
+                    if(attemptedToPlay){
+                        play();
+                    }
                 }
             });
             player.prepareAsync();
@@ -111,42 +219,13 @@ public class PlayerFragment extends DialogFragment {
                 @Override
                 public void onCompletion(MediaPlayer mediaPlayer) {
                     toggleBtnView();
-                    isCompleted = true;
+                    done();
                 }
             });
 
-            //new PlayTrack().execute();
+
         }
         catch (IOException e) { Log.w("IO Exception: ", e.toString()); }
-
-        return view;
-    }
-
-    @Override
-    public void onDestroy() {
-        if(player != null) {
-            player.release();
-            player = null;
-        }
-        super.onDestroy();
-    }
-
-    public void play() {
-        if(isCompleted){
-            isCompleted = false;
-            player.stop();
-            player.reset();
-        }
-        if(isLoaded){
-            toggleBtnView();
-            player.start();
-            new Seek().execute();
-        }
-    }
-
-    public void pause() {
-        if(player.isPlaying()) player.pause();
-        toggleBtnView();
     }
 
     public void toggleBtnView() {
