@@ -34,6 +34,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.nicksjostrom.spotifystreamer.TopTenTracksActivity" />
         </activity>
+
+        <service android:enabled="true" android:name="com.nicksjostrom.spotifystreamer.MediaService" />
     </application>
 
 </manifest>

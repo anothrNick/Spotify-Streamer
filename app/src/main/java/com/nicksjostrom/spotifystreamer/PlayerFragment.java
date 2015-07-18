@@ -1,7 +1,10 @@
 package com.nicksjostrom.spotifystreamer;
 
 import android.app.DialogFragment;
-import android.media.AudioManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,18 +20,13 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
-
 import kaaes.spotify.webapi.android.models.Track;
 
 public class PlayerFragment extends DialogFragment {
 
     int mTrackPosition = 0;
     int mTrackIndex = 0;
-    boolean startNew = true;
-    boolean attemptedToPlay = false;
-    boolean isLoaded = false;
-    static boolean paused = false; // there can only be one
+    static boolean playing = false; // there can only be one
     static boolean saveState = false; // there can only be one
 
     String artistName;
@@ -46,8 +44,11 @@ public class PlayerFragment extends DialogFragment {
     ImageButton previousButton;
 
     SeekBar songNav;
-    Seek seekerTask;
     MediaPlayer player;
+    IntentFilter filter;
+    private static Intent mediaService = null;
+
+    private BroadcastReceiver receiver = null;
 
     @Override
     public void onPause() {
@@ -92,7 +93,7 @@ public class PlayerFragment extends DialogFragment {
 
         Log.d("tag","onCreateView");
 
-        if( getDialog() != null )getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        if( getDialog() != null ) getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         View view = inflater.inflate(R.layout.fragment_player, container, false);
 
@@ -146,13 +147,39 @@ public class PlayerFragment extends DialogFragment {
 
         int savedPosition = 0;
 
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+
+                if(action.equals(MediaService.UPDATE_MAX)) {
+                    int duration = intent.getIntExtra("max", 0);
+
+                    timeView.setText("0:" + (int) (duration * .001));
+                    songNav.setMax(duration);
+                }
+                else if(action.equals(MediaService.UPDATE_SEEK)) {
+                    int position = intent.getIntExtra("playerPosition", 0);
+                    int prg = (int) (position * .001);
+
+                    songNav.setProgress(position);
+                    progressView.setText("0:" + (prg < 10 ? "0" : "") + prg);
+                }
+            }
+        };
+
+
+        filter = new IntentFilter();
+        filter.addAction(MediaService.UPDATE_MAX);
+        filter.addAction(MediaService.UPDATE_SEEK);
+
         // restore player position
         if( savedInstanceState != null ){
-            saveState = false;
-            if( paused ) {
-                paused = false;
-                attemptedToPlay = true;
-                savedPosition = savedInstanceState.getInt("position");
+            //savedPosition = savedInstanceState.getInt("position");
+            mTrackIndex = savedInstanceState.getInt("trackIndex");
+            if(playing) {
+                toggleBtnView();
+                this.getActivity().registerReceiver(receiver, filter);
             }
         }
 
@@ -169,8 +196,10 @@ public class PlayerFragment extends DialogFragment {
         Log.d("tag","onSaveInstanceState");
 
         saveState = true;
+        savedInstanceState.putInt("trackIndex", mTrackIndex);
 
         // check that player has been initialized
+        /*
         if( player != null ) {
             // put position of player
             savedInstanceState.putInt("position", player.getCurrentPosition());
@@ -179,6 +208,7 @@ public class PlayerFragment extends DialogFragment {
                 paused = true;
             }
         }
+        */
     }
 
     @Override
@@ -193,51 +223,39 @@ public class PlayerFragment extends DialogFragment {
      * Done with this track. Pause and seek to 0 on seekbar
      */
     public void done() {
-        if(player != null) {
-            pause();
-            player.seekTo(0);
-        }
+        pause();
     }
 
     /**
      * Stop and release player resources.
      */
     public void stop() {
-        if(player != null) {
-            if(player.isPlaying()) {
-                seekerTask.cancel(true);
-                player.stop();
-            }
-            player.reset();
-            player.release();
-            player = null;
-        }
+        playing = false;
+
     }
 
     /**
      * Play player if a track is loaded, if not loaded, flag to play as soon as loading is complete.
      */
     public void play() {
-        if(isLoaded && player != null){
-            attemptedToPlay = false;
-            toggleBtnView();
-            if(mTrackPosition != 0) player.seekTo(mTrackPosition);
-            player.start();
-            seekerTask = (Seek) new Seek().execute();
-        }
-        else {
-            attemptedToPlay = true;
-        }
+        playing = true;
+
+        Intent intent = new Intent();
+        intent.setAction(MediaService.PLAY);
+        this.getActivity().sendBroadcast(intent);
+        toggleBtnView();
     }
 
     /**
      * Pause player if playing. Update buttons
      */
     public void pause() {
-        if(player != null && player.isPlaying()) {
-            player.pause();
-            toggleBtnView();
-        }
+        playing = false;
+
+        Intent intent = new Intent();
+        intent.setAction(MediaService.PAUSE);
+        this.getActivity().sendBroadcast(intent);
+        toggleBtnView();
     }
 
     /**
@@ -245,12 +263,14 @@ public class PlayerFragment extends DialogFragment {
      * load next track
      */
     public void forward(){
+        playing = false;
         mTrackIndex ++;
+        done();
         if( mTrackIndex > (SearchArtistsActivity.trackList.size()-1)) mTrackIndex = 0;
-        if(player != null && player.isPlaying()) {
-            done();
-            attemptedToPlay = true;
-        }
+        //if(player != null && player.isPlaying()) {
+        //    done();
+        //    attemptedToPlay = true;
+        //}
         loadTrack(0);
     }
 
@@ -259,12 +279,14 @@ public class PlayerFragment extends DialogFragment {
      * load next track
      */
     public void previous(){
+        playing = false;
         mTrackIndex --;
+        done();
         if( mTrackIndex < 0 ) mTrackIndex = (SearchArtistsActivity.trackList.size()-1);
-        if(player != null && player.isPlaying()) {
-            done();
-            attemptedToPlay = true;
-        }
+        //if(player != null && player.isPlaying()) {
+        //    done();
+        //    attemptedToPlay = true;
+        //}
         loadTrack(0);
     }
 
@@ -295,6 +317,24 @@ public class PlayerFragment extends DialogFragment {
                     .into(coverImage);
         }
 
+        if(!saveState) {
+
+            if (mediaService != null) {
+                //if(receiver != null) {
+                    //this.getActivity().unregisterReceiver(receiver);
+                //}
+                this.getActivity().stopService(mediaService);
+            }
+            mediaService = new Intent(this.getActivity(), MediaService.class);
+            mediaService.putExtra("previewUrl", previewUrl);
+            this.getActivity().startService(mediaService);
+            this.getActivity().registerReceiver(receiver, filter);
+        }
+        else {
+            saveState = false;
+        }
+
+        /*
         if(player != null) {
             player.stop();
             player.reset();
@@ -312,7 +352,6 @@ public class PlayerFragment extends DialogFragment {
                     isLoaded = true;
                     Log.d("", "loaded");
 
-                    songNav.setMax(player.getDuration());
                     timeView.setText("0:" + (int) (player.getDuration() * .001));
 
                     if(attemptedToPlay){
@@ -333,6 +372,7 @@ public class PlayerFragment extends DialogFragment {
 
         }
         catch (IOException e) { Log.w("IO Exception: ", e.toString()); }
+        */
     }
 
     /**
@@ -374,7 +414,6 @@ public class PlayerFragment extends DialogFragment {
         protected void onProgressUpdate(Void... values) {
 
             if(!saveState) {
-                songNav.setProgress(player.getCurrentPosition());
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
