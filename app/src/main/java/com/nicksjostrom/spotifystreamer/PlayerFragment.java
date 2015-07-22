@@ -5,8 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.MediaPlayer;
-import android.os.AsyncTask;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,10 +24,10 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class PlayerFragment extends DialogFragment {
 
-    int mTrackPosition = 0;
-    int mTrackIndex = 0;
-    static boolean playing = false; // there can only be one
-    static boolean saveState = false; // there can only be one
+    private int mTrackIndex = 0;
+    private boolean playing = false; // there can only be one
+    private boolean  manualSeeking = false;
+    private static boolean saveState = false; // there can only be one
 
     String artistName;
 
@@ -44,11 +44,10 @@ public class PlayerFragment extends DialogFragment {
     ImageButton previousButton;
 
     SeekBar songNav;
-    MediaPlayer player;
     IntentFilter filter;
     private static Intent mediaService = null;
 
-    private BroadcastReceiver receiver = null;
+    private static BroadcastReceiver receiver = null;
 
     @Override
     public void onPause() {
@@ -91,7 +90,7 @@ public class PlayerFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.d("tag","onCreateView");
+        Log.d("playerFragment","onCreateView");
 
         if( getDialog() != null ) getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
@@ -133,6 +132,8 @@ public class PlayerFragment extends DialogFragment {
                 play();
             }
         });
+        playButton.setEnabled(false);
+        playButton.getBackground().setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
 
         pauseButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -147,27 +148,54 @@ public class PlayerFragment extends DialogFragment {
 
         int savedPosition = 0;
 
+        songNav.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int newProgress = 0;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                if(b) {
+                    newProgress = i;
+                    int prg = (int) (newProgress * .001);
+                    progressView.setText("0:" + (prg < 10 ? "0" : "") + prg);
+                    manualSeeking = b;
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                manualSeeking = false;
+                Intent seekIntent = new Intent(MediaService.CHANGE_SEEK);
+                seekIntent.putExtra("seekto", newProgress);
+                getActivity().sendBroadcast(seekIntent);
+            }
+        });
+
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
 
-                if(action.equals(MediaService.UPDATE_MAX)) {
+                if (action.equals(MediaService.UPDATE_MAX)) {
                     int duration = intent.getIntExtra("max", 0);
 
                     timeView.setText("0:" + (int) (duration * .001));
                     songNav.setMax(duration);
-                }
-                else if(action.equals(MediaService.UPDATE_SEEK)) {
+                    playButton.setEnabled(true);
+                    playButton.getBackground().setColorFilter(null);
+                } else if (action.equals(MediaService.UPDATE_SEEK)) {
                     int position = intent.getIntExtra("playerPosition", 0);
                     int prg = (int) (position * .001);
 
-                    songNav.setProgress(position);
-                    progressView.setText("0:" + (prg < 10 ? "0" : "") + prg);
+                    if(!manualSeeking) {
+                        songNav.setProgress(position);
+                        progressView.setText("0:" + (prg < 10 ? "0" : "") + prg);
+                    }
                 }
             }
         };
-
 
         filter = new IntentFilter();
         filter.addAction(MediaService.UPDATE_MAX);
@@ -177,10 +205,16 @@ public class PlayerFragment extends DialogFragment {
         if( savedInstanceState != null ){
             //savedPosition = savedInstanceState.getInt("position");
             mTrackIndex = savedInstanceState.getInt("trackIndex");
+            playing = savedInstanceState.getBoolean("playing");
+
+            Log.d("playerFragment", "playing: " + playing);
             if(playing) {
+                Log.d("playerFragment", "playing");
                 toggleBtnView();
                 this.getActivity().registerReceiver(receiver, filter);
             }
+            getMax();
+            getSeek();
         }
 
         // load track at a specific position
@@ -193,84 +227,85 @@ public class PlayerFragment extends DialogFragment {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
 
-        Log.d("tag","onSaveInstanceState");
+        Log.d("playerfragment","onSaveInstanceState");
 
         saveState = true;
         savedInstanceState.putInt("trackIndex", mTrackIndex);
-
-        // check that player has been initialized
-        /*
-        if( player != null ) {
-            // put position of player
-            savedInstanceState.putInt("position", player.getCurrentPosition());
-            // if the player is currently playing, flag so we continue to play after instance is restored
-            if( player.isPlaying() ) {
-                paused = true;
-            }
-        }
-        */
+        savedInstanceState.putBoolean("playing", playing);
     }
 
     @Override
     public void onDestroy() {
-        Log.d("tag","onDestroy");
+        Log.d("playerfragment","onDestroy");
+        try {
+            this.getActivity().unregisterReceiver(receiver);
+        } catch ( IllegalArgumentException e ) {
+            Log.w("playerfragment", e.getMessage());
+        }
         // make sure we clean up player resources before this fragment is destroyed
         stop();
         super.onDestroy();
     }
 
     /**
-     * Done with this track. Pause and seek to 0 on seekbar
-     */
-    public void done() {
-        pause();
-    }
-
-    /**
      * Stop and release player resources.
      */
-    public void stop() {
+    private void stop() {
         playing = false;
+    }
 
+    private void getSeek() {
+        Intent intent = new Intent();
+        intent.setAction(MediaService.GET_SEEK);
+        this.getActivity().sendBroadcast(intent);
+    }
+
+    private void getMax() {
+        Intent intent = new Intent();
+        intent.setAction(MediaService.GET_MAX);
+        this.getActivity().sendBroadcast(intent);
     }
 
     /**
      * Play player if a track is loaded, if not loaded, flag to play as soon as loading is complete.
      */
-    public void play() {
+    private void play() {
         playing = true;
+        toggleBtnView();
 
         Intent intent = new Intent();
         intent.setAction(MediaService.PLAY);
         this.getActivity().sendBroadcast(intent);
-        toggleBtnView();
     }
 
     /**
      * Pause player if playing. Update buttons
      */
-    public void pause() {
-        playing = false;
+    private void pause() {
+        if(playing) {
+            toggleBtnView();
+            playing = false;
+        }
 
         Intent intent = new Intent();
         intent.setAction(MediaService.PAUSE);
         this.getActivity().sendBroadcast(intent);
-        toggleBtnView();
     }
 
     /**
      * Increment track index. If we player is currently playing, stop and reset seekbar
      * load next track
      */
-    public void forward(){
-        playing = false;
+    private void forward(){
         mTrackIndex ++;
-        done();
+
+        pause();
+
+        playButton.setEnabled(false);
+        playButton.getBackground().setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+
         if( mTrackIndex > (SearchArtistsActivity.trackList.size()-1)) mTrackIndex = 0;
-        //if(player != null && player.isPlaying()) {
-        //    done();
-        //    attemptedToPlay = true;
-        //}
+
         loadTrack(0);
     }
 
@@ -278,15 +313,16 @@ public class PlayerFragment extends DialogFragment {
      * Decrement track index. If we player is currently playing, stop and reset seekbar
      * load next track
      */
-    public void previous(){
-        playing = false;
+    private void previous(){
         mTrackIndex --;
-        done();
+
+        pause();
+
+        playButton.setEnabled(false);
+        playButton.getBackground().setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+
         if( mTrackIndex < 0 ) mTrackIndex = (SearchArtistsActivity.trackList.size()-1);
-        //if(player != null && player.isPlaying()) {
-        //    done();
-        //    attemptedToPlay = true;
-        //}
+
         loadTrack(0);
     }
 
@@ -294,9 +330,8 @@ public class PlayerFragment extends DialogFragment {
      * Load track at mTrackIndex. Sets position for seekbar (primarily for orientation change / saved state).
      * @param position
      */
-    public void loadTrack(int position) {
+    private void loadTrack(int position) {
         Log.d("tag","loadTrack()");
-        mTrackPosition = position;
         Track track = SearchArtistsActivity.trackList.get(mTrackIndex);
         String trackName = track.name;
         String albumName = track.album.name;
@@ -333,52 +368,12 @@ public class PlayerFragment extends DialogFragment {
         else {
             saveState = false;
         }
-
-        /*
-        if(player != null) {
-            player.stop();
-            player.reset();
-            player.release();
-        }
-        player = new MediaPlayer();
-
-        try {
-            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            player.setDataSource(previewUrl);
-            player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mediaPlayer) {
-                    //mediaPlayer.start();
-                    isLoaded = true;
-                    Log.d("", "loaded");
-
-                    timeView.setText("0:" + (int) (player.getDuration() * .001));
-
-                    if(attemptedToPlay){
-                        play();
-                    }
-                }
-            });
-            player.prepareAsync();
-
-            player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mediaPlayer) {
-                    toggleBtnView();
-                    done();
-                }
-            });
-
-
-        }
-        catch (IOException e) { Log.w("IO Exception: ", e.toString()); }
-        */
     }
 
     /**
      * Toggle play / pause button visibility
      */
-    public void toggleBtnView() {
+    private void toggleBtnView() {
         if(playButton.getVisibility() == View.VISIBLE) {
             playButton.setVisibility(View.GONE);
             pauseButton.setVisibility(View.VISIBLE);
@@ -388,49 +383,4 @@ public class PlayerFragment extends DialogFragment {
             pauseButton.setVisibility(View.GONE);
         }
     }
-
-    /**
-     * Seek AsyncTask. Updates seekbar as player is playing
-     */
-    private class Seek extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... args){
-            while(!saveState && player.isPlaying()) {
-
-                try{
-                    Thread.sleep(100);
-                } catch(InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                onProgressUpdate();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-
-            if(!saveState) {
-
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        int prg = (int) (player.getCurrentPosition() * .001);
-                        progressView.setText("0:" + (prg < 10 ? "0" : "") + prg);
-                    }
-                });
-            }
-
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onPostExecute(Void result){
-            super.onPostExecute(result);
-        }
-    }
-
 }

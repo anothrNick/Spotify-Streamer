@@ -16,7 +16,6 @@ import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -35,13 +34,12 @@ public class TopTenTracksFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_top_ten_tracks, container, false);
 
-        SearchArtistsActivity.trackList.clear();
-
         if (savedInstanceState != null) {
             // get existing TrackAdapter
             adapter = savedInstanceState.getParcelable("tracks");
         }
         else {
+            SearchArtistsActivity.trackList.clear();
             // initialize TrackAdapter with empty list, updating this will update the listview (once notified of changes)
             adapter = new TrackAdapter(getActivity(), SearchArtistsActivity.trackList);
         }

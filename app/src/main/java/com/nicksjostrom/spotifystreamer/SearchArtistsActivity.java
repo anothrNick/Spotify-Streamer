@@ -22,8 +22,6 @@ public class SearchArtistsActivity extends AppCompatActivity  {
 
     public static boolean mDualPane = false;
 
-    //public ArrayList<Track> trackList = new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,10 +30,10 @@ public class SearchArtistsActivity extends AppCompatActivity  {
         if(findViewById(R.id.track_list_container) != null) {
             mDualPane = true;
         }
-        //FragmentManager fm = getFragmentManager();
 
-        //FragmentTransaction ft = fm.beginTransaction();
-        //ft.add(R.id.search_artist_container, new SearchArtistsFragment()).addToBackStack("search").commit();
+        //if(savedInstanceState != null) {
+        //    trackList = (ArrayList) savedInstanceState.getSerializable("trackList");
+        //}
     }
 
     @Override
@@ -45,6 +43,12 @@ public class SearchArtistsActivity extends AppCompatActivity  {
         return true;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+
+        //savedInstanceState.putSerializable("trackList", trackList);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
