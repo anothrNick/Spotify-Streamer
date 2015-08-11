@@ -27,6 +27,10 @@ public class TrackAdapter extends BaseAdapter implements Parcelable{
     Picasso mPicasso;
     LayoutInflater mInflater;
 
+    public TrackAdapter(Parcel in) {
+        in.readArray(TrackAdapter.class.getClassLoader());
+    }
+
     TrackAdapter(Context context, List<Track> tracks) {
         this.context = context;
         this.tracks = tracks;
@@ -34,6 +38,17 @@ public class TrackAdapter extends BaseAdapter implements Parcelable{
         this.mPicasso = Picasso.with(context);
         this.mInflater = LayoutInflater.from(context);
     }
+
+    public static final Parcelable.Creator<TrackAdapter> CREATOR
+            = new Parcelable.Creator<TrackAdapter>() {
+        public TrackAdapter createFromParcel(Parcel in) {
+            return new TrackAdapter(in);
+        }
+
+        public TrackAdapter[] newArray(int size) {
+            return new TrackAdapter[size];
+        }
+    };
 
     @Override
     public int describeContents() { return 0; }
