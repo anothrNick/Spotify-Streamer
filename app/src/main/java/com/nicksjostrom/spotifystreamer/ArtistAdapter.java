@@ -29,6 +29,10 @@ public class ArtistAdapter extends BaseAdapter implements Parcelable {
     Picasso mPicasso;
     LayoutInflater mInflater;
 
+    public ArtistAdapter(Parcel in) {
+        in.readArray(ArtistAdapter.class.getClassLoader());
+    }
+
     ArtistAdapter(Context context, List<Artist> artists) {
         this.context = context;
         this.artists = artists;
@@ -36,6 +40,17 @@ public class ArtistAdapter extends BaseAdapter implements Parcelable {
         this.mPicasso = Picasso.with(context);
         this.mInflater = LayoutInflater.from(context);
     }
+
+    public static final Parcelable.Creator<ArtistAdapter> CREATOR
+            = new Parcelable.Creator<ArtistAdapter>() {
+        public ArtistAdapter createFromParcel(Parcel in) {
+            return new ArtistAdapter(in);
+        }
+
+        public ArtistAdapter[] newArray(int size) {
+            return new ArtistAdapter[size];
+        }
+    };
 
     @Override
     public int describeContents() { return 0; }
